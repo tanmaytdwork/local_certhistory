@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/certhistory/db" VERSION="20241202" COMMENT="XMLDB file for local_certhistory"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_certhistory_certs" COMMENT="Snapshot of issued certificates with metadata preserved at issue time">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The user who was issued the certificate"/>
+        <FIELD NAME="issueid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Original customcert_issues.id"/>
+        <FIELD NAME="customcertid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Original customcert.id"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Course ID at time of issue"/>
+        <FIELD NAME="coursename" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" COMMENT="Course fullname snapshot"/>
+        <FIELD NAME="certname" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" COMMENT="Certificate name snapshot"/>
+        <FIELD NAME="code" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="Certificate verification code"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="When the certificate was originally issued"/>
+        <FIELD NAME="timesnapshotted" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="When this snapshot was taken"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="issueid" UNIQUE="true" FIELDS="issueid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
