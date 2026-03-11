@@ -1,4 +1,4 @@
-# local_certhistory — Certificate History Plugin for Moodle 4.4+
+# local_certhistory +
 
 > A local Moodle plugin built to solve a real data-loss problem in `mod_customcert`.
 > Developed independently as a demonstration of Moodle plugin development, event-driven architecture, and deep Moodle API usage.
