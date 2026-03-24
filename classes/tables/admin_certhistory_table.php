@@ -163,6 +163,21 @@ class admin_certhistory_table extends table_sql {
     }
 
     public function col_download($row): string {
+        global $OUTPUT;
+
+        $verifyurl = new moodle_url('/local/certhistory/verify.php', ['code' => $row->code]);
+        $shareicon = html_writer::tag('i', '', ['class' => 'fa fa-share-alt fa-fw', 'aria-hidden' => 'true']);
+        $sharebtn = html_writer::tag('button',
+            $shareicon,
+            [
+                'class'       => 'btn btn-link p-0 border-0 align-baseline',
+                'data-action' => 'copy-verify-url',
+                'data-url'    => $verifyurl->out(false),
+                'title'       => get_string('copyverifylink', 'local_certhistory'),
+                'aria-label'  => get_string('copyverifylink', 'local_certhistory'),
+            ]
+        );
+
         $file = $this->fs->get_file(
             $this->syscontext->id,
             'local_certhistory',
@@ -176,17 +191,16 @@ class admin_certhistory_table extends table_sql {
             return html_writer::span(
                 get_string('unavailable', 'local_certhistory'),
                 'text-muted'
-            );
+            ) . ' ' . $sharebtn;
         }
 
-        global $OUTPUT;
-
         $url = new moodle_url('/local/certhistory/download.php', ['id' => $row->id]);
-
-        return html_writer::link(
+        $downloadlink = html_writer::link(
             $url,
             $OUTPUT->pix_icon('t/download', get_string('downloadcert', 'local_certhistory')),
             ['title' => get_string('downloadcert', 'local_certhistory')]
         );
+
+        return $downloadlink . ' ' . $sharebtn;
     }
 }

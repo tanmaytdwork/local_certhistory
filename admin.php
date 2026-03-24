@@ -21,4 +21,6 @@ echo $OUTPUT->heading($title);
 $table = new \local_certhistory\tables\admin_certhistory_table('local-certhistory-admin', $pageurl);
 $table->out(20, true);
 
+$PAGE->requires->js_call_amd('local_certhistory/copy_verify_url', 'init');
+
 echo $OUTPUT->footer();
