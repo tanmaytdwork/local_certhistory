@@ -9,7 +9,7 @@ $id = required_param('id', PARAM_INT);
 $context = context_system::instance();
 require_capability('local/certhistory:view', $context);
 
-$record = $DB->get_record('local_certhistory_certs', ['id' => $id], '*', MUST_EXIST);
+$record = \local_certhistory\services\repository::get_snapshot_must_exist($id);
 
 if ($record->userid != $USER->id) {
     throw new moodle_exception('nopermission', 'error');

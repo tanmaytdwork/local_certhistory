@@ -24,6 +24,6 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
 
 $table = new \local_certhistory\tables\certhistory_table('local-certhistory', $USER->id, $pageurl);
-$table->out(20, true);
+$table->out(5, true);
 
 echo $OUTPUT->footer();

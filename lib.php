@@ -3,7 +3,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 function local_certhistory_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
-    global $DB, $USER;
+    global $USER;
 
     require_login();
 
@@ -19,7 +19,7 @@ function local_certhistory_pluginfile($course, $cm, $context, $filearea, $args, 
     $filename = array_pop($args);
     $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
 
-    $record = $DB->get_record('local_certhistory_certs', ['id' => $itemid]);
+    $record = \local_certhistory\services\repository::get_snapshot($itemid);
     if (!$record || $record->userid != $USER->id) {
         return false;
     }

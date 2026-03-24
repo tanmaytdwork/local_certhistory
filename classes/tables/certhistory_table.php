@@ -15,11 +15,15 @@ class certhistory_table extends table_sql {
 
     protected int $userid;
     protected int $rownumber = 0;
+    protected \file_storage $fs;
+    protected \context_system $syscontext;
  
     public function __construct(string $uniqueid, int $userid, moodle_url $baseurl) {
         parent::__construct($uniqueid);
         $this->userid = $userid;
         $this->rownumber = 0;
+        $this->fs = get_file_storage();
+        $this->syscontext = \context_system::instance();
 
         $columns = ['rownumber', 'coursename', 'certname', 'timecreated', 'code', 'enrollstatus', 'download'];
         $headers = [
@@ -39,7 +43,7 @@ class certhistory_table extends table_sql {
         $this->no_sorting('rownumber');
         $this->no_sorting('download');
 
-        $this->sortable(true, 'timecreated', SORT_DESC);
+        // $this->sortable(true, 'timecreated', SORT_DESC);
         $this->collapsible(false);
 
         $this->set_attribute('class', 'generaltable generalbox local-certhistory-table');
@@ -115,7 +119,8 @@ class certhistory_table extends table_sql {
                    );
         }
 
-        return $name;
+        $url = new moodle_url('/course/view.php', ['id' => $row->currentcourseid]);
+        return html_writer::link($url, $name);
     }
 
     public function col_certname($row): string {
@@ -162,10 +167,8 @@ class certhistory_table extends table_sql {
 
 
     public function col_download($row): string {
-        $fs = get_file_storage();
-        $context = \context_system::instance();
-        $file = $fs->get_file(
-            $context->id,
+        $file = $this->fs->get_file(
+            $this->syscontext->id,
             'local_certhistory',
             'certificates',
             $row->id,
