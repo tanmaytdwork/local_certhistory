@@ -9,4 +9,11 @@ $capabilities = [
             'user' => CAP_ALLOW,
         ],
     ],
+    'local/certhistory:viewall' => [
+        'captype'      => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 ];
