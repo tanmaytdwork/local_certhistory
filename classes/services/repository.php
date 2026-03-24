@@ -45,4 +45,9 @@ class repository {
         global $DB;
         return $DB->get_record('local_certhistory_certs', ['id' => $id], '*', MUST_EXIST);
     }
+
+    public static function get_all_issues_recordset(): \moodle_recordset {
+        global $DB;
+        return $DB->get_recordset('customcert_issues');
+    }
 }
