@@ -11,7 +11,10 @@ require_capability('local/certhistory:view', $context);
 
 $record = \local_certhistory\services\repository::get_snapshot_must_exist($id);
 
-if ($record->userid != $USER->id) {
+$isowner = $record->userid == $USER->id;
+$isadmin = has_capability('local/certhistory:viewall', $context);
+
+if (!$isowner && !$isadmin) {
     throw new moodle_exception('nopermission', 'error');
 }
 

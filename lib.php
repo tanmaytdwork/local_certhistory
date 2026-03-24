@@ -20,7 +20,10 @@ function local_certhistory_pluginfile($course, $cm, $context, $filearea, $args, 
     $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
 
     $record = \local_certhistory\services\repository::get_snapshot($itemid);
-    if (!$record || $record->userid != $USER->id) {
+    $isowner = $record && $record->userid == $USER->id;
+    $isadmin = has_capability('local/certhistory:viewall', $context);
+
+    if (!$record || (!$isowner && !$isadmin)) {
         return false;
     }
 
@@ -50,6 +53,17 @@ function local_certhistory_extend_navigation(global_navigation $nav) {
         'local_certhistory',
         new pix_icon('i/certificate', '')
     );
+
+    if (has_capability('local/certhistory:viewall', context_system::instance())) {
+        $nav->add(
+            get_string('admincerthistory', 'local_certhistory'),
+            new moodle_url('/local/certhistory/admin.php'),
+            navigation_node::TYPE_CUSTOM,
+            null,
+            'local_certhistory_admin',
+            new pix_icon('i/report', '')
+        );
+    }
 }
 
 
