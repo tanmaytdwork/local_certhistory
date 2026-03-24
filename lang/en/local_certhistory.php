@@ -21,4 +21,7 @@ $string['statussuspended'] = 'Suspended';
 $string['statusnotenrolled'] = 'Not enrolled';
 $string['statusdeleted'] = 'Deleted';
 $string['nocustomcert'] = 'The mod_customcert plugin is required but not installed.';
+$string['certhistory:viewall'] = 'View all users certificate history';
+$string['admincerthistory'] = 'All Certificate History';
+$string['user'] = 'User';
 $string['privacy:metadata'] = 'The Certificate History plugin stores snapshots of certificate data (name, course, code, PDF) when certificates are issued, to preserve them if courses are later deleted.';
