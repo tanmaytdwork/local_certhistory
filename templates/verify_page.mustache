@@ -1,0 +1,48 @@
+{{!
+    @template local_certhistory/verify_page
+
+    Certificate verification page — search form and result.
+
+    Context variables:
+    * formaction string  - URL the form posts to
+    * code       string  - current code value (may be empty)
+    * result_notfound bool - set when code was searched but not found
+    * result_valid    bool - set when a valid certificate was found
+    * details    array  - rows of {label, value} for the certificate details table
+}}
+<form method="get" action="{{formaction}}" class="mb-4">
+    <div class="input-group">
+        <input type="text"
+               name="code"
+               value="{{code}}"
+               class="form-control"
+               placeholder="{{#str}}verifycode, local_certhistory{{/str}}">
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">
+                {{#str}}verify, local_certhistory{{/str}}
+            </button>
+        </div>
+    </div>
+</form>
+
+{{#result_notfound}}
+<div class="alert alert-danger" role="alert">
+    {{#str}}certificatenotfound, local_certhistory{{/str}}
+</div>
+{{/result_notfound}}
+
+{{#result_valid}}
+<div class="alert alert-success" role="alert">
+    {{#str}}certificatevalid, local_certhistory{{/str}}
+</div>
+<table class="generaltable w-auto">
+    <tbody>
+        {{#details}}
+        <tr>
+            <th class="pr-4 text-right font-weight-bold">{{label}}</th>
+            <td>{{value}}</td>
+        </tr>
+        {{/details}}
+    </tbody>
+</table>
+{{/result_valid}}

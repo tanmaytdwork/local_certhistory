@@ -50,4 +50,14 @@ class repository {
         global $DB;
         return $DB->get_recordset('customcert_issues');
     }
+
+    public static function get_snapshot_by_code(string $code): ?\stdClass {
+        global $DB;
+        return $DB->get_record('local_certhistory_certs', ['code' => $code]) ?: null;
+    }
+
+    public static function get_user(int $userid): ?\stdClass {
+        global $DB;
+        return $DB->get_record('user', ['id' => $userid]) ?: null;
+    }
 }
