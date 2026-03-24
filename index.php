@@ -17,13 +17,12 @@ $title = get_string('mycerthistory', 'local_certhistory');
 $PAGE->set_url($pageurl);
 $PAGE->set_context($context);
 $PAGE->set_title($title);
-// $PAGE->set_heading($title);
 $PAGE->set_pagelayout('standard');
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
 
 $table = new \local_certhistory\tables\certhistory_table('local-certhistory', $USER->id, $pageurl);
-$table->out(5, true);
+$table->out(20, true);
 
 echo $OUTPUT->footer();

@@ -31,7 +31,7 @@ class admin_certhistory_table extends table_sql {
             get_string('dateissued', 'local_certhistory'),
             get_string('code', 'local_certhistory'),
             get_string('enrollmentstatus', 'local_certhistory'),
-            get_string('download', 'local_certhistory'),
+            '',
         ];
 
         $this->define_columns($columns);
@@ -91,7 +91,8 @@ class admin_certhistory_table extends table_sql {
 
     public function col_rownumber($row): string {
         $this->rownumber++;
-        return (string)$this->rownumber;
+        $offset = $this->currpage * $this->pagesize;
+        return (string)($offset + $this->rownumber);
     }
 
     public function col_username($row): string {
@@ -178,12 +179,14 @@ class admin_certhistory_table extends table_sql {
             );
         }
 
+        global $OUTPUT;
+
         $url = new moodle_url('/local/certhistory/download.php', ['id' => $row->id]);
 
         return html_writer::link(
             $url,
-            get_string('downloadcert', 'local_certhistory'),
-            ['class' => 'btn btn-sm btn-outline-primary']
+            $OUTPUT->pix_icon('t/download', get_string('downloadcert', 'local_certhistory')),
+            ['title' => get_string('downloadcert', 'local_certhistory')]
         );
     }
 }
