@@ -15,12 +15,14 @@ class admin_certhistory_table extends table_sql {
     protected int $rownumber = 0;
     protected \file_storage $fs;
     protected \context_system $syscontext;
+    protected string $search;
 
-    public function __construct(string $uniqueid, moodle_url $baseurl) {
+    public function __construct(string $uniqueid, moodle_url $baseurl, string $search = '') {
         parent::__construct($uniqueid);
         $this->rownumber = 0;
         $this->fs = get_file_storage();
         $this->syscontext = \context_system::instance();
+        $this->search = $search;
 
         $columns = ['rownumber', 'username', 'coursename', 'certname', 'timecreated', 'code', 'enrollstatus', 'download'];
         $headers = [
@@ -85,8 +87,33 @@ class admin_certhistory_table extends table_sql {
                      JOIN {enrol} e ON e.id = ue.enrolid
                  ) ue_any ON ue_any.userid = ch.userid AND ue_any.courseid = ch.courseid";
 
-        $this->set_sql($fields, $from, '1=1', []);
-        $this->set_count_sql("SELECT COUNT(1) FROM {local_certhistory_certs}", []);
+        global $DB;
+
+        $where = '1=1';
+        $params = [];
+
+        if ($this->search !== '') {
+            $val = '%' . $DB->sql_like_escape($this->search) . '%';
+            $where = '(' .
+                $DB->sql_like('u.firstname',   ':searchfirst',    false) . ' OR ' .
+                $DB->sql_like('u.lastname',    ':searchlast',     false) . ' OR ' .
+                $DB->sql_like($DB->sql_concat('u.firstname', "' '", 'u.lastname'), ':searchfullname', false) . ' OR ' .
+                $DB->sql_like('ch.coursename', ':searchcourse',   false) . ' OR ' .
+                $DB->sql_like('ch.certname',   ':searchcert',     false) . ' OR ' .
+                $DB->sql_like('ch.code',       ':searchcode',     false) .
+            ')';
+            $params = [
+                'searchfirst'    => $val,
+                'searchlast'     => $val,
+                'searchfullname' => $val,
+                'searchcourse'   => $val,
+                'searchcert'     => $val,
+                'searchcode'     => $val,
+            ];
+        }
+
+        $this->set_sql($fields, $from, $where, $params);
+        $this->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where", $params);
     }
 
     public function col_rownumber($row): string {

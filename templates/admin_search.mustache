@@ -1,0 +1,25 @@
+{{!
+    @template local_certhistory/admin_search
+
+    Search form for the admin certificate history table.
+
+    Context variables:
+    * formaction string - form action URL
+    * search     string - current search value
+    * has_search bool   - true when a search is active (shows Clear button)
+}}
+<form method="get" action="{{formaction}}" class="mb-4">
+    <div class="input-group">
+        <input type="text"
+               name="search"
+               value="{{search}}"
+               class="form-control"
+               placeholder="{{#str}}searchplaceholder, local_certhistory{{/str}}">
+        <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">{{#str}}search, core{{/str}}</button>
+            {{#has_search}}
+            <a href="{{formaction}}" class="btn btn-secondary">{{#str}}clear, core{{/str}}</a>
+            {{/has_search}}
+        </div>
+    </div>
+</form>
