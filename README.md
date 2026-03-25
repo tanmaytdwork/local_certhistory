@@ -1,136 +1,33 @@
-# local_certhistory 
+# Certificate History
 
-> A local Moodle plugin built to solve a real data-loss problem in `mod_customcert`.
-> Developed independently as a demonstration of Moodle plugin development, event-driven architecture, and deep Moodle API usage.
+## Overview
+**Certificate History** is a Moodle local plugin that solves a critical data-loss problem in `mod_customcert`. When courses or certificate activities are deleted, Moodle's built-in "My certificates" page silently drops all certificates from those courses due to an `INNER JOIN` on the course table. This plugin preserves certificates permanently by capturing immutable snapshots — both metadata and a rendered PDF — at the exact moment of issuance, completely independent of the original course or activity lifecycle.
 
----
+## Key Capabilities
 
-## The Problem I Identified
+The plugin listens for `\mod_customcert\event\issue_created` and "captures an immutable snapshot of the certificate metadata and a rendered PDF" the instant a certificate is issued. Users can view, download, and share their full certificate history even after course deletion, while administrators can search and manage certificates across all users from a dedicated reports page.
 
-`mod_customcert` is the most widely used certificate plugin for Moodle. However, its "My certificates" page has a critical flaw:
+## Technical Requirements
+- Moodle 4.2 or later
+- PHP 8.1 or later
+- `mod_customcert` installed and active
 
-```sql
--- Simplified version of what mod_customcert does internally
-SELECT ci.* FROM {customcert_issues} ci
-INNER JOIN {course} c ON c.id = ci.courseid   -- <-- the problem
-WHERE ci.userid = :userid
-```
+## Installation Process
+Copy the `certhistory` folder to `local/`, visit Site Administration → Notifications to trigger the DB upgrade, and the plugin activates immediately. On first install, an adhoc task runs automatically to retroactively snapshot all previously issued certificates still present in `customcert_issues`.
 
-The `INNER JOIN` on `{course}` means that **if a course is deleted, every certificate from that course silently disappears** from the user's view — even though the issue record in `{customcert_issues}` still exists.
+## Notable Features
 
-This creates three compounding problems:
+**Event-Driven Snapshot Architecture**: Rather than patching `mod_customcert`, the plugin uses Moodle's standard observer mechanism to hook into `issue_created` events. A unique constraint on `issueid` in the database makes the observer "idempotent — a duplicate snapshot cannot be created even if the event fires twice."
 
-| Scenario | What happens to the user |
-|----------|--------------------------|
-| Course is deleted | Certificate vanishes from "My certificates" |
-| Certificate activity is removed | Certificate vanishes from "My certificates" |
-| Template is modified or deleted | PDF cannot be regenerated — it is lost forever |
+**PDF Preservation**: Generated PDFs are stored via Moodle's File Storage API under `CONTEXT_SYSTEM`, meaning they "survive course and activity deletion" and are served securely through the standard pluginfile mechanism with ownership enforcement.
 
-For institutions that retire courses, run short programs, or periodically clean up old content, this is a serious issue. Students lose verifiable proof of their achievements through no fault of their own.
+**Retroactive Import**: A scheduled adhoc task runs on installation and "iterates all unsnapshotted issues to create snapshots and PDFs for existing certificates," ensuring no historical data is lost at the point of adoption.
 
----
+**Public Certificate Verification**: A login-free verification page at `/local/certhistory/verify.php` allows anyone to look up a certificate by its unique code, displaying the holder's name, certificate name, course, and issue date as a public attestation of authenticity.
 
-## My Solution: Event-Driven Snapshot Architecture
+**Enrollment Status Awareness**: The user-facing certificate list displays real-time enrollment status badges — Active, Suspended, Not Enrolled, or Deleted — and clearly flags certificates whose originating course has been deleted or hidden.
 
-Rather than patching `mod_customcert` (which would create a maintenance burden and break with updates), I designed a fully decoupled local plugin that **listens for the `issue_created` event** and captures an immutable snapshot at the exact moment of issuance.
+**Admin Search & Management**: A dedicated admin page under Site Administration → Reports provides a searchable, sortable table of all certificates across the platform, with search across usernames, course names, certificate names, and verification codes.
 
-```
-mod_customcert issues a certificate
-        ↓
-Fires \mod_customcert\event\issue_created
-        ↓
-local_certhistory\observer::certificate_issued()
-        ↓
-  ┌─────────────────────────────────────────┐
-  │  1. Snapshot metadata into DB           │
-  │     (course name, cert name, code,      │
-  │      user ID, timestamps, activity IDs) │
-  │                                         │
-  │  2. Generate + store PDF to file API    │
-  │     (actual rendered PDF, frozen in     │
-  │      Moodle file storage forever)       │
-  └─────────────────────────────────────────┘
-        ↓
-Data is permanently preserved — independent of
-the original course, activity, or template
-```
-
-
-
----
-
-## Moodle APIs Utilised
-
-This plugin intentionally exercises a broad range of Moodle's core APIs to demonstrate platform-level familiarity:
-
-### 1. Event System (`db/events.php`, `classes/observer.php`)
-Registered an observer for `\mod_customcert\event\issue_created` using Moodle's standard event observer mechanism. The observer is stateless and idempotent — a unique constraint on `issueid` in the DB prevents duplicate snapshots if the event somehow fires twice.
-
-```php
-// db/events.php
-$observers = [[
-    'eventname' => '\mod_customcert\event\issue_created',
-    'callback'  => '\local_certhistory\observer::certificate_issued',
-]];
-```
-
-### 2. File Storage API (`classes/observer.php`, `lib.php`, `download.php`)
-Used `get_file_storage()` to permanently store the generated PDF inside Moodle's standard file system. Files are stored under:
-- **Component:** `local_certhistory`
-- **File area:** `certificates`
-- **Context:** `CONTEXT_SYSTEM`
-- **Itemid:** the `local_certhistory_certs` record ID
-
-This means files survive course/activity deletion (they are associated with SYSTEM context, not course context) and can be served securely through Moodle's pluginfile mechanism.
-
-
-### 3. Pluginfile Callback (`lib.php`)
-Implemented `local_certhistory_pluginfile()` so that stored PDFs are served via Moodle's standard `/pluginfile.php/` URL scheme. This function enforces ownership — a user can only retrieve their own certificate files — before calling `$file->send_file()`.
-
-### 4. Capability System (`db/access.php`)
-Defined a custom capability `local/certhistory:view` at `CONTEXT_SYSTEM` level, defaulting to `CAP_ALLOW` for the `user` archetype. All pages enforce this via `require_capability()`, giving administrators the ability to restrict access if needed.
-
-### 5. Navigation Hooks (`lib.php`)
-Integrated into two points of Moodle's navigation tree without touching core:
-- `local_certhistory_extend_navigation()` — adds a sidebar link with a certificate icon via `$navigation->add()`
-- `local_certhistory_myprofile_navigation()` — adds a link in the user profile's "Miscellaneous" section, shown only on the user's own profile
-
-
-
-## Plugin Structure
-
-```
-local/certhistory/
-├── version.php                        #requirement, mod_customcert dependency
-├── index.php                          
-├── download.php                       #Secure PDF endpoint: ownership check, send_file()
-├── lib.php                            
-├── db/
-│   ├── access.php                     
-│   ├── events.php                     #Observer registration for issue_created
-│   ├── install.xml                   
-│   └── upgrade.php                    
-├── classes/
-│   ├── observer.php                                
-│   └── tables/
-│       └── certhistory_table.php     
-└── lang/
-    └── en/
-        └── local_certhistory.php      
-```
-
----
-
-
-## Installation
-
-1. Copy the `certhistory` directory to `{moodleroot}/local/`
-2. Ensure `mod_customcert` is installed (the plugin dependency will prevent install otherwise)
-3. Navigate to **Site Administration → Notifications** to run the DB upgrade
-4. The plugin activates immediately — all new certificate issuances will be captured automatically
-
-> **Note:** Certificates issued *before* installation are not retroactively captured. The observer only fires on new `issue_created` events going forward. Existing certificates remain accessible through `mod_customcert`'s own interface as long as their courses exist.
-
----
-
-
+## Author & License
+Created by Tanmay Deshmukh under GNU GPL v3 or later licensing.
