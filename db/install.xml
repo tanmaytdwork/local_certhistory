@@ -23,6 +23,8 @@
       <INDEXES>
         <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
         <INDEX NAME="issueid" UNIQUE="true" FIELDS="issueid"/>
+        <INDEX NAME="code" UNIQUE="true" FIELDS="code"/>
+        <INDEX NAME="timecreated" UNIQUE="false" FIELDS="timecreated"/>
       </INDEXES>
     </TABLE>
   </TABLES>

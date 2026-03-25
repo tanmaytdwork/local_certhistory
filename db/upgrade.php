@@ -33,5 +33,21 @@ function xmldb_local_certhistory_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024120200, 'local', 'certhistory');
     }
 
+    if ($oldversion < 2024120206) {
+        $table = new xmldb_table('local_certhistory_certs');
+
+        $codeindex = new xmldb_index('code', XMLDB_INDEX_UNIQUE, ['code']);
+        if (!$dbman->index_exists($table, $codeindex)) {
+            $dbman->add_index($table, $codeindex);
+        }
+
+        $timecreatedindex = new xmldb_index('timecreated', XMLDB_INDEX_NOTUNIQUE, ['timecreated']);
+        if (!$dbman->index_exists($table, $timecreatedindex)) {
+            $dbman->add_index($table, $timecreatedindex);
+        }
+
+        upgrade_plugin_savepoint(true, 2024120206, 'local', 'certhistory');
+    }
+
     return true;
 }
