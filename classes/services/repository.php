@@ -46,9 +46,17 @@ class repository {
         return $DB->get_record('local_certhistory_certs', ['id' => $id], '*', MUST_EXIST);
     }
 
-    public static function get_all_issues_recordset(): \moodle_recordset {
+    public static function get_unsnapshotted_issues_recordset(): \moodle_recordset {
         global $DB;
-        return $DB->get_recordset('customcert_issues');
+        $sql = "SELECT ci.id, ci.userid, ci.customcertid, ci.code, ci.timecreated,
+                       cc.name AS certname, cc.templateid,
+                       c.id AS courseid, c.fullname AS coursename
+                  FROM {customcert_issues} ci
+                  JOIN {customcert} cc ON cc.id = ci.customcertid
+                  JOIN {course} c ON c.id = cc.course
+             LEFT JOIN {local_certhistory_certs} lch ON lch.issueid = ci.id
+                 WHERE lch.id IS NULL";
+        return $DB->get_recordset_sql($sql);
     }
 
     public static function get_snapshot_by_code(string $code): ?\stdClass {
@@ -58,6 +66,8 @@ class repository {
 
     public static function get_user(int $userid): ?\stdClass {
         global $DB;
-        return $DB->get_record('user', ['id' => $userid]) ?: null;
+        return $DB->get_record('user', ['id' => $userid],
+            'id, firstname, lastname, firstnamephonetic, lastnamephonetic, middlename, alternatename'
+        ) ?: null;
     }
 }
