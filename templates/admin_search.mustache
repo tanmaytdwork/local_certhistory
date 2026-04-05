@@ -7,6 +7,13 @@
     * formaction string - form action URL
     * search     string - current search value
     * has_search bool   - true when a search is active (shows Clear button)
+
+    Example context (json):
+    {
+        "formaction": "/local/certhistory/admin.php",
+        "search": "Jane",
+        "has_search": true
+    }
 }}
 <form method="get" action="{{formaction}}" class="mb-4">
     <div class="input-group">

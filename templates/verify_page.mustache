@@ -9,6 +9,20 @@
     * result_notfound bool - set when code was searched but not found
     * result_valid    bool - set when a valid certificate was found
     * details    array  - rows of {label, value} for the certificate details table
+
+    Example context (json):
+    {
+        "formaction": "/local/certhistory/verify.php",
+        "code": "ABC123XYZ",
+        "result_valid": true,
+        "details": [
+            {"label": "Certificate Holder", "value": "Jane Doe"},
+            {"label": "Certificate", "value": "Course Completion"},
+            {"label": "Course Name", "value": "Introduction to Moodle"},
+            {"label": "Date Issued", "value": "1 January 2024"},
+            {"label": "Code", "value": "ABC123XYZ"}
+        ]
+    }
 }}
 <form method="get" action="{{formaction}}" class="mb-4">
     <div class="input-group">
