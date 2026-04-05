@@ -1,4 +1,26 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Admin certificate history table.
+ *
+ * @package   local_certhistory
+ * @copyright 2026 Tanmay Deshmukh
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace local_certhistory\tables;
 
@@ -10,13 +32,33 @@ use table_sql;
 use moodle_url;
 use html_writer;
 
+/**
+ * Displays a searchable table of all certificate snapshots for admins.
+ *
+ * @package   local_certhistory
+ * @copyright 2026 Tanmay Deshmukh
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class admin_certhistory_table extends table_sql {
-
+    /** @var int Running row counter for the current page. */
     protected int $rownumber = 0;
+
+    /** @var \file_storage File storage instance. */
     protected \file_storage $fs;
+
+    /** @var \context_system System context instance. */
     protected \context_system $syscontext;
+
+    /** @var string Current search query. */
     protected string $search;
 
+    /**
+     * Constructor.
+     *
+     * @param string $uniqueid Unique table identifier.
+     * @param moodle_url $baseurl The base URL for sorting/paging links.
+     * @param string $search Optional search query.
+     */
     public function __construct(string $uniqueid, moodle_url $baseurl, string $search = '') {
         parent::__construct($uniqueid);
         $this->rownumber = 0;
@@ -51,6 +93,9 @@ class admin_certhistory_table extends table_sql {
         $this->setup_sql();
     }
 
+    /**
+     * Configure the SQL query for this table.
+     */
     protected function setup_sql(): void {
         $fields = "ch.id,
                    ch.issueid,
@@ -95,12 +140,12 @@ class admin_certhistory_table extends table_sql {
         if ($this->search !== '') {
             $val = '%' . $DB->sql_like_escape($this->search) . '%';
             $where = '(' .
-                $DB->sql_like('u.firstname',   ':searchfirst',    false) . ' OR ' .
-                $DB->sql_like('u.lastname',    ':searchlast',     false) . ' OR ' .
+                $DB->sql_like('u.firstname', ':searchfirst', false) . ' OR ' .
+                $DB->sql_like('u.lastname', ':searchlast', false) . ' OR ' .
                 $DB->sql_like($DB->sql_concat('u.firstname', "' '", 'u.lastname'), ':searchfullname', false) . ' OR ' .
-                $DB->sql_like('ch.coursename', ':searchcourse',   false) . ' OR ' .
-                $DB->sql_like('ch.certname',   ':searchcert',     false) . ' OR ' .
-                $DB->sql_like('ch.code',       ':searchcode',     false) .
+                $DB->sql_like('ch.coursename', ':searchcourse', false) . ' OR ' .
+                $DB->sql_like('ch.certname', ':searchcert', false) . ' OR ' .
+                $DB->sql_like('ch.code', ':searchcode', false) .
             ')';
             $params = [
                 'searchfirst'    => $val,
@@ -116,18 +161,36 @@ class admin_certhistory_table extends table_sql {
         $this->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where", $params);
     }
 
+    /**
+     * Render the row number column.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_rownumber($row): string {
         $this->rownumber++;
         $offset = $this->currpage * $this->pagesize;
         return (string)($offset + $this->rownumber);
     }
 
+    /**
+     * Render the username column as a link to the user's profile.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_username($row): string {
         $fullname = fullname($row);
         $url = new moodle_url('/user/view.php', ['id' => $row->userid]);
         return html_writer::link($url, $fullname);
     }
 
+    /**
+     * Render the course name column with status badges.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_coursename($row): string {
         $name = format_string($row->coursename);
 
@@ -150,18 +213,42 @@ class admin_certhistory_table extends table_sql {
         return html_writer::link($url, $name);
     }
 
+    /**
+     * Render the certificate name column.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_certname($row): string {
         return format_string($row->certname);
     }
 
+    /**
+     * Render the date issued column.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_timecreated($row): string {
         return userdate($row->timecreated, get_string('strftimedatetimeshort', 'core_langconfig'));
     }
 
+    /**
+     * Render the certificate code column.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_code($row): string {
         return $row->code;
     }
 
+    /**
+     * Render the enrolment status column.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_enrollstatus($row): string {
         switch ($row->enrollstatus) {
             case 'active':
@@ -189,12 +276,19 @@ class admin_certhistory_table extends table_sql {
         }
     }
 
+    /**
+     * Render the download/share column.
+     *
+     * @param \stdClass $row The current row.
+     * @return string
+     */
     public function col_download($row): string {
         global $OUTPUT;
 
         $verifyurl = new moodle_url('/local/certhistory/verify.php', ['code' => $row->code]);
         $shareicon = html_writer::tag('i', '', ['class' => 'fa fa-share-alt fa-fw', 'aria-hidden' => 'true']);
-        $sharebtn = html_writer::tag('button',
+        $sharebtn = html_writer::tag(
+            'button',
             $shareicon,
             [
                 'class'       => 'btn btn-link p-0 border-0 align-baseline',

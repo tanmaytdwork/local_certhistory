@@ -1,7 +1,39 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Plugin library functions.
+ *
+ * @package   local_certhistory
+ * @copyright 2026 Tanmay Deshmukh
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
+/**
+ * Serve plugin files.
+ *
+ * @param stdClass $course The course object.
+ * @param stdClass $cm The course module object.
+ * @param context $context The context object.
+ * @param string $filearea The file area.
+ * @param array $args The file arguments.
+ * @param bool $forcedownload Whether to force download.
+ * @param array $options Additional options.
+ * @return bool False if file not found.
+ */
 function local_certhistory_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $USER;
 
@@ -36,6 +68,11 @@ function local_certhistory_pluginfile($course, $cm, $context, $filearea, $args, 
     send_stored_file($file, 0, 0, $forcedownload, $options);
 }
 
+/**
+ * Extend the global navigation.
+ *
+ * @param global_navigation $nav The global navigation object.
+ */
 function local_certhistory_extend_navigation(global_navigation $nav) {
     if (!isloggedin() || isguestuser()) {
         return;
@@ -66,7 +103,14 @@ function local_certhistory_extend_navigation(global_navigation $nav) {
     }
 }
 
-
+/**
+ * Add links to user profile navigation.
+ *
+ * @param \core_user\output\myprofile\tree $tree The profile tree.
+ * @param stdClass $user The user object.
+ * @param bool $iscurrentuser Whether viewing own profile.
+ * @param stdClass $course The course object.
+ */
 function local_certhistory_myprofile_navigation(
     \core_user\output\myprofile\tree $tree,
     $user,
