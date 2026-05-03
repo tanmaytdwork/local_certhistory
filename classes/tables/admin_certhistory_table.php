@@ -66,7 +66,7 @@ class admin_certhistory_table extends table_sql {
         $this->syscontext = \context_system::instance();
         $this->search = $search;
 
-        $columns = ['rownumber', 'username', 'coursename', 'certname', 'timecreated', 'code', 'enrollstatus', 'download'];
+        $columns = ['rownumber', 'username', 'coursename', 'certname', 'timecreated', 'code', 'download'];
         $headers = [
             '#',
             get_string('user', 'local_certhistory'),
@@ -74,7 +74,6 @@ class admin_certhistory_table extends table_sql {
             get_string('certificatename', 'local_certhistory'),
             get_string('dateissued', 'local_certhistory'),
             get_string('code', 'local_certhistory'),
-            get_string('enrollmentstatus', 'local_certhistory'),
             '',
         ];
 
@@ -109,27 +108,10 @@ class admin_certhistory_table extends table_sql {
                    ch.email,
                    ch.timecreated,
                    co.id AS currentcourseid,
-                   co.visible AS coursevisible,
-                   CASE
-                       WHEN co.id IS NULL THEN 'deleted'
-                       WHEN ue_active.userid IS NOT NULL THEN 'active'
-                       WHEN ue_any.userid IS NOT NULL THEN 'suspended'
-                       ELSE 'notenrolled'
-                   END AS enrollstatus";
+                   co.visible AS coursevisible";
 
         $from = "{local_certhistory_certs} ch
-                 LEFT JOIN {course} co ON co.id = ch.courseid
-                 LEFT JOIN (
-                     SELECT DISTINCT ue.userid, e.courseid
-                     FROM {user_enrolments} ue
-                     JOIN {enrol} e ON e.id = ue.enrolid
-                     WHERE ue.status = 0 AND e.status = 0
-                 ) ue_active ON ue_active.userid = ch.userid AND ue_active.courseid = ch.courseid
-                 LEFT JOIN (
-                     SELECT DISTINCT ue.userid, e.courseid
-                     FROM {user_enrolments} ue
-                     JOIN {enrol} e ON e.id = ue.enrolid
-                 ) ue_any ON ue_any.userid = ch.userid AND ue_any.courseid = ch.courseid";
+                 LEFT JOIN {course} co ON co.id = ch.courseid";
 
         global $DB;
 
@@ -237,39 +219,6 @@ class admin_certhistory_table extends table_sql {
      */
     public function col_code($row): string {
         return $row->code;
-    }
-
-    /**
-     * Render the enrolment status column.
-     *
-     * @param \stdClass $row The current row.
-     * @return string
-     */
-    public function col_enrollstatus($row): string {
-        switch ($row->enrollstatus) {
-            case 'active':
-                return html_writer::span(
-                    get_string('statusactive', 'local_certhistory'),
-                    'badge badge-success'
-                );
-            case 'suspended':
-                return html_writer::span(
-                    get_string('statussuspended', 'local_certhistory'),
-                    'badge badge-warning'
-                );
-            case 'notenrolled':
-                return html_writer::span(
-                    get_string('statusnotenrolled', 'local_certhistory'),
-                    'badge badge-secondary'
-                );
-            case 'deleted':
-                return html_writer::span(
-                    get_string('statusdeleted', 'local_certhistory'),
-                    'badge badge-danger'
-                );
-            default:
-                return $row->enrollstatus;
-        }
     }
 
     /**

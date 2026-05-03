@@ -25,8 +25,6 @@ Copy the `certhistory` folder to `local/`, visit Site Administration → Notific
 
 **Public Certificate Verification**: A login-free verification page at `/local/certhistory/verify.php` allows anyone to look up a certificate by its unique code, displaying the holder's name, certificate name, course, and issue date as a public attestation of authenticity.
 
-**Enrollment Status Awareness**: The user-facing certificate list displays real-time enrollment status badges — Active, Suspended, Not Enrolled, or Deleted — and clearly flags certificates whose originating course has been deleted or hidden.
-
 **Admin Search & Management**: A dedicated admin page under Site Administration → Reports provides a searchable, sortable table of all certificates across the platform, with search across usernames, course names, certificate names, and verification codes.
 
 ## Author & License
