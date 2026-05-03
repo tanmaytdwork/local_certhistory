@@ -106,12 +106,9 @@ class admin_certhistory_table extends table_sql {
                    ch.code,
                    ch.studentname,
                    ch.email,
-                   ch.timecreated,
-                   co.id AS currentcourseid,
-                   co.visible AS coursevisible";
+                   ch.timecreated";
 
-        $from = "{local_certhistory_certs} ch
-                 LEFT JOIN {course} co ON co.id = ch.courseid";
+        $from = "{local_certhistory_certs} ch";
 
         global $DB;
 
@@ -164,31 +161,13 @@ class admin_certhistory_table extends table_sql {
     }
 
     /**
-     * Render the course name column with status badges.
+     * Render the course name column.
      *
      * @param \stdClass $row The current row.
      * @return string
      */
     public function col_coursename($row): string {
-        $name = format_string($row->coursename);
-
-        if (empty($row->currentcourseid)) {
-            return $name . ' ' . html_writer::span(
-                get_string('coursedeleted', 'local_certhistory'),
-                'badge badge-danger'
-            );
-        }
-
-        if (empty($row->coursevisible)) {
-            return html_writer::span($name, 'text-muted') . ' ' .
-                   html_writer::span(
-                       get_string('hiddencourse', 'local_certhistory'),
-                       'badge badge-secondary'
-                   );
-        }
-
-        $url = new moodle_url('/course/view.php', ['id' => $row->currentcourseid]);
-        return html_writer::link($url, $name);
+        return format_string($row->coursename);
     }
 
     /**
