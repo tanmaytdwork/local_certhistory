@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2024120206;
+$plugin->version   = 2024120207;
 $plugin->requires  = 2024042200;
 $plugin->component = 'local_certhistory';
 $plugin->maturity  = MATURITY_STABLE;

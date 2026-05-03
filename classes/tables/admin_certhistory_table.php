@@ -105,9 +105,9 @@ class admin_certhistory_table extends table_sql {
                    ch.coursename,
                    ch.certname,
                    ch.code,
+                   ch.studentname,
+                   ch.email,
                    ch.timecreated,
-                   u.firstname,
-                   u.lastname,
                    co.id AS currentcourseid,
                    co.visible AS coursevisible,
                    CASE
@@ -118,7 +118,6 @@ class admin_certhistory_table extends table_sql {
                    END AS enrollstatus";
 
         $from = "{local_certhistory_certs} ch
-                 JOIN {user} u ON u.id = ch.userid
                  LEFT JOIN {course} co ON co.id = ch.courseid
                  LEFT JOIN (
                      SELECT DISTINCT ue.userid, e.courseid
@@ -140,20 +139,18 @@ class admin_certhistory_table extends table_sql {
         if ($this->search !== '') {
             $val = '%' . $DB->sql_like_escape($this->search) . '%';
             $where = '(' .
-                $DB->sql_like('u.firstname', ':searchfirst', false) . ' OR ' .
-                $DB->sql_like('u.lastname', ':searchlast', false) . ' OR ' .
-                $DB->sql_like($DB->sql_concat('u.firstname', "' '", 'u.lastname'), ':searchfullname', false) . ' OR ' .
+                $DB->sql_like('ch.studentname', ':searchname', false) . ' OR ' .
+                $DB->sql_like('ch.email', ':searchemail', false) . ' OR ' .
                 $DB->sql_like('ch.coursename', ':searchcourse', false) . ' OR ' .
                 $DB->sql_like('ch.certname', ':searchcert', false) . ' OR ' .
                 $DB->sql_like('ch.code', ':searchcode', false) .
             ')';
             $params = [
-                'searchfirst'    => $val,
-                'searchlast'     => $val,
-                'searchfullname' => $val,
-                'searchcourse'   => $val,
-                'searchcert'     => $val,
-                'searchcode'     => $val,
+                'searchname'   => $val,
+                'searchemail'  => $val,
+                'searchcourse' => $val,
+                'searchcert'   => $val,
+                'searchcode'   => $val,
             ];
         }
 
@@ -180,9 +177,8 @@ class admin_certhistory_table extends table_sql {
      * @return string
      */
     public function col_username($row): string {
-        $fullname = fullname($row);
         $url = new moodle_url('/user/view.php', ['id' => $row->userid]);
-        return html_writer::link($url, $fullname);
+        return html_writer::link($url, $row->studentname);
     }
 
     /**

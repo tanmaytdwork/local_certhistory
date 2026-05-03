@@ -129,10 +129,13 @@ class repository {
         global $DB;
         $sql = "SELECT ci.id, ci.userid, ci.customcertid, ci.code, ci.timecreated,
                        cc.name AS certname, cc.templateid,
-                       c.id AS courseid, c.fullname AS coursename
+                       c.id AS courseid, c.fullname AS coursename,
+                       u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
+                       u.middlename, u.alternatename, u.email
                   FROM {customcert_issues} ci
                   JOIN {customcert} cc ON cc.id = ci.customcertid
                   JOIN {course} c ON c.id = cc.course
+             LEFT JOIN {user} u ON u.id = ci.userid
              LEFT JOIN {local_certhistory_certs} lch ON lch.issueid = ci.id
                  WHERE lch.id IS NULL";
         return $DB->get_recordset_sql($sql);
@@ -160,7 +163,7 @@ class repository {
         return $DB->get_record(
             'user',
             ['id' => $userid],
-            'id, firstname, lastname, firstnamephonetic, lastnamephonetic, middlename, alternatename'
+            'id, firstname, lastname, firstnamephonetic, lastnamephonetic, middlename, alternatename, email'
         ) ?: null;
     }
 }

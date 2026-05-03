@@ -75,5 +75,21 @@ function xmldb_local_certhistory_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024120206, 'local', 'certhistory');
     }
 
+    if ($oldversion < 2024120207) {
+        $table = new xmldb_table('local_certhistory_certs');
+
+        $studentnamefield = new xmldb_field('studentname', XMLDB_TYPE_CHAR, '254', null, XMLDB_NOTNULL, null, null, 'code');
+        if (!$dbman->field_exists($table, $studentnamefield)) {
+            $dbman->add_field($table, $studentnamefield);
+        }
+
+        $emailfield = new xmldb_field('email', XMLDB_TYPE_CHAR, '254', null, XMLDB_NOTNULL, null, null, 'studentname');
+        if (!$dbman->field_exists($table, $emailfield)) {
+            $dbman->add_field($table, $emailfield);
+        }
+
+        upgrade_plugin_savepoint(true, 2024120207, 'local', 'certhistory');
+    }
+
     return true;
 }

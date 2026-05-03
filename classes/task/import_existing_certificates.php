@@ -50,6 +50,8 @@ class import_existing_certificates extends \core\task\adhoc_task {
             $record->coursename      = $issue->coursename;
             $record->certname        = $issue->certname;
             $record->code            = $issue->code;
+            $record->studentname     = trim(($issue->firstname ?? '') . ' ' . ($issue->lastname ?? ''));
+            $record->email           = $issue->email ?? '';
             $record->timecreated     = $issue->timecreated;
             $record->timesnapshotted = time();
 

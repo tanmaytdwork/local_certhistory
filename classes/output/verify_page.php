@@ -73,13 +73,11 @@ class verify_page implements renderable, templatable {
             return $data;
         }
 
-        $user = repository::get_user($record->userid);
-
         $data['result_valid'] = true;
         $data['details'] = [
             [
                 'label' => get_string('certificateholder', 'local_certhistory'),
-                'value' => fullname($user),
+                'value' => $record->studentname,
             ],
             [
                 'label' => get_string('certificatename', 'local_certhistory'),

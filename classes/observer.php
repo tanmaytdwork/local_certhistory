@@ -62,6 +62,8 @@ class observer {
             return;
         }
 
+        $user = repository::get_user($issue->userid);
+
         $record = new \stdClass();
         $record->userid = $issue->userid;
         $record->issueid = $issueid;
@@ -70,6 +72,8 @@ class observer {
         $record->coursename = $course->fullname;
         $record->certname = $customcert->name;
         $record->code = $issue->code;
+        $record->studentname = $user ? $user->firstname . ' ' . $user->lastname : '';
+        $record->email = $user ? $user->email : '';
         $record->timecreated = $issue->timecreated;
         $record->timesnapshotted = time();
 

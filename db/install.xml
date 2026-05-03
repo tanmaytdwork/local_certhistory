@@ -14,6 +14,8 @@
         <FIELD NAME="coursename" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" COMMENT="Course fullname snapshot"/>
         <FIELD NAME="certname" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" COMMENT="Certificate name snapshot"/>
         <FIELD NAME="code" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" COMMENT="Certificate verification code"/>
+        <FIELD NAME="studentname" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" COMMENT="Full name of the student at time of issue"/>
+        <FIELD NAME="email" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" COMMENT="Email address of the student at time of issue"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="When the certificate was originally issued"/>
         <FIELD NAME="timesnapshotted" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="When this snapshot was taken"/>
       </FIELDS>
