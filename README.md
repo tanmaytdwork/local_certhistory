@@ -1,31 +1,65 @@
 # Certificate History
 
-## Overview
-**Certificate History** is a Moodle local plugin that solves a critical data-loss problem in `mod_customcert`. When courses or certificate activities are deleted, Moodle's built-in "My certificates" page silently drops all certificates from those courses due to an `INNER JOIN` on the course table. This plugin preserves certificates permanently by capturing immutable snapshots — both metadata and a rendered PDF — at the exact moment of issuance, completely independent of the original course or activity lifecycle.
+A Moodle local plugin that permanently archives `mod_customcert` certificate issuances as immutable snapshots. When a course or certificate activity is deleted, Moodle's built-in "My certificates" page silently drops those records — this plugin prevents that data loss entirely.
 
-## Key Capabilities
+## Features
 
-The plugin listens for `\mod_customcert\event\issue_created` and "captures an immutable snapshot of the certificate metadata and a rendered PDF" the instant a certificate is issued. Users can view, download, and share their full certificate history even after course deletion, while administrators can search and manage certificates across all users from a dedicated reports page.
+- Automatically snapshots every certificate at the exact moment it is issued, capturing metadata and a rendered PDF
+- Snapshots are fully independent of the original course, activity, and user — data survives deletion of any of them
+- Retroactive backfill on first install — an adhoc task snapshots all pre-existing `customcert_issues` so no historical data is lost
+- Students can view their full certificate history from their Moodle profile under the "My Certificate History" page, including certificates from courses that have since been deleted
+- Admin certificate management page under Site Administration → Reports with search and pagination across all users
+- Public certificate verification page at `/local/certhistory/verify.php` — anyone can confirm a certificate is authentic by entering its unique code
+- Web service API with two endpoints: retrieve a filtered/paginated list of certificates, or fetch a stored PDF as base64
 
-## Technical Requirements
-- Moodle 4.2 or later
-- PHP 8.1 or later
+## Requirements
+
+- Moodle 4.4 or later
+- PHP 8.2 or later
 - `mod_customcert` installed and active
 
-## Installation Process
-Copy the `certhistory` folder to `local/`, visit Site Administration → Notifications to trigger the DB upgrade, and the plugin activates immediately. On first install, an adhoc task runs automatically to retroactively snapshot all previously issued certificates still present in `customcert_issues`.
+## Installation
 
-## Notable Features
+1. Copy the `certhistory` folder into `local/` in your Moodle root directory.
+2. Visit Site Administration → Notifications to run the plugin installation.
+3. An adhoc task will run automatically to backfill snapshots for all previously issued certificates.
 
-**Event-Driven Snapshot Architecture**: Rather than patching `mod_customcert`, the plugin uses Moodle's standard observer mechanism to hook into `issue_created` events. A unique constraint on `issueid` in the database makes the observer "idempotent — a duplicate snapshot cannot be created even if the event fires twice."
+## Usage
 
-**PDF Preservation**: Generated PDFs are stored via Moodle's File Storage API under `CONTEXT_SYSTEM`, meaning they "survive course and activity deletion" and are served securely through the standard pluginfile mechanism with ownership enforcement.
+### For students
 
-**Retroactive Import**: A scheduled adhoc task runs on installation and "iterates all unsnapshotted issues to create snapshots and PDFs for existing certificates," ensuring no historical data is lost at the point of adoption.
+Certificates are captured automatically — no action required. Students can view their full certificate history, including certificates from deleted courses, from the plugin's history page.
 
-**Public Certificate Verification**: A login-free verification page at `/local/certhistory/verify.php` allows anyone to look up a certificate by its unique code, displaying the holder's name, certificate name, course, and issue date as a public attestation of authenticity.
+### For administrators
 
-**Admin Search & Management**: A dedicated admin page under Site Administration → Reports provides a searchable, sortable table of all certificates across the platform, with search across usernames, course names, certificate names, and verification codes.
+A searchable table of all certificates across the platform is available under Site Administration → Reports → Certificate History. Search by student name, email, course name, certificate name, or verification code.
 
-## Author & License
-Created by Tanmay Deshmukh under GNU GPL v3 or later licensing.
+### Certificate verification
+
+Anyone can verify a certificate at `/local/certhistory/verify.php` by entering the unique code printed on the certificate. The page displays the holder's name, certificate name, course, and issue date.
+
+### Web service API
+
+Two web service functions are available for external integrations (requires `local/certhistory:viewall`):
+
+- `local_certhistory_get_certificates` — returns a paginated, filterable list of certificate snapshots
+- `local_certhistory_get_certificate_pdf` — returns the stored PDF for a given snapshot as a base64-encoded string
+
+
+## Privacy
+
+The plugin stores a copy of the student's name and email taken from their Moodle user record at the time of certificate issuance. This data is retained in `local_certhistory_certs` independently of the user account and is intentional — it is what makes the snapshot survive account deletion.
+
+The plugin implements Moodle's privacy API. When a GDPR data export request is submitted, all certificate snapshots belonging to the user are included. When a data deletion request is processed, all snapshots for that user are permanently removed from the database.
+
+## Bug tracker
+
+Please report issues at: https://github.com/tanmaytdwork/moodle-local_certhistory/issues
+
+## License
+
+GNU GPL v3 or later — http://www.gnu.org/copyleft/gpl.html
+
+## Author
+
+Tanmay Deshmukh
