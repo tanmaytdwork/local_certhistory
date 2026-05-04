@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_certhistory\tests\external;
+namespace local_certhistory\external;
 
 use advanced_testcase;
 use local_certhistory\external\get_certificates;
@@ -39,30 +39,25 @@ use local_certhistory\services\repository;
  * @group     local_certhistory
  * @coversDefaultClass \local_certhistory\external\get_certificates
  */
-class get_certificates_test extends advanced_testcase {
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
+final class get_certificates_test extends advanced_testcase {
     /**
      * Insert a snapshot record and return it with its DB id.
      *
-     * @param array $overrides
+     * @param array $overrides Field overrides.
      * @return \stdClass
      */
     private function insert_snapshot(array $overrides = []): \stdClass {
         $record = (object) array_merge([
-            'userid'          => 1,
-            'issueid'         => 1,
-            'customcertid'    => 1,
-            'courseid'        => 1,
-            'coursename'      => 'Test Course',
-            'certname'        => 'Test Certificate',
-            'code'            => 'CODE001',
-            'studentname'     => 'John Doe',
-            'email'           => 'john@example.com',
-            'timecreated'     => time(),
+            'userid' => 1,
+            'issueid' => 1,
+            'customcertid' => 1,
+            'courseid' => 1,
+            'coursename' => 'Test Course',
+            'certname' => 'Test Certificate',
+            'code' => 'CODE001',
+            'studentname' => 'John Doe',
+            'email' => 'john@example.com',
+            'timecreated' => time(),
             'timesnapshotted' => time(),
         ], $overrides);
 
@@ -71,7 +66,7 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
-     * Set the current user as a manager (has local/certhistory:viewall).
+     * Set the current user as admin.
      */
     private function set_admin_user(): void {
         $this->setAdminUser();
@@ -80,27 +75,25 @@ class get_certificates_test extends advanced_testcase {
     /**
      * Call execute() with all defaults except the provided overrides.
      *
-     * @param array $params
+     * @param array $params Parameter overrides.
      * @return array
      */
     private function call(array $params = []): array {
         return get_certificates::execute(
-            $params['userid']      ?? 0,
-            $params['email']       ?? '',
-            $params['courseid']    ?? 0,
-            $params['certname']    ?? '',
+            $params['userid'] ?? 0,
+            $params['email'] ?? '',
+            $params['courseid'] ?? 0,
+            $params['certname'] ?? '',
             $params['studentname'] ?? '',
-            $params['code']        ?? '',
-            $params['limit']       ?? 20,
-            $params['offset']      ?? 0,
+            $params['code'] ?? '',
+            $params['limit'] ?? 20,
+            $params['offset'] ?? 0,
         );
     }
 
-    // -------------------------------------------------------------------------
-    // Capability check
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the viewall capability is required.
+     *
      * @covers ::execute
      */
     public function test_requires_viewall_capability(): void {
@@ -113,11 +106,9 @@ class get_certificates_test extends advanced_testcase {
         $this->call();
     }
 
-    // -------------------------------------------------------------------------
-    // No filters — returns all
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that all records are returned when no filters are applied.
+     *
      * @covers ::execute
      */
     public function test_returns_all_records_when_no_filters(): void {
@@ -135,6 +126,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that an empty array is returned when no snapshots exist.
+     *
      * @covers ::execute
      */
     public function test_returns_empty_array_when_no_snapshots(): void {
@@ -147,11 +140,9 @@ class get_certificates_test extends advanced_testcase {
         $this->assertEquals(0, $result['total']);
     }
 
-    // -------------------------------------------------------------------------
-    // Response shape
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that each certificate record contains all expected fields.
+     *
      * @covers ::execute
      */
     public function test_certificate_record_has_all_expected_fields(): void {
@@ -161,24 +152,22 @@ class get_certificates_test extends advanced_testcase {
         $this->insert_snapshot(['code' => 'SHAPE01', 'issueid' => 1]);
 
         $result = $this->call();
-        $cert   = $result['certificates'][0];
+        $cert = $result['certificates'][0];
 
-        $this->assertArrayHasKey('id',          $cert);
-        $this->assertArrayHasKey('userid',      $cert);
-        $this->assertArrayHasKey('courseid',    $cert);
-        $this->assertArrayHasKey('coursename',  $cert);
-        $this->assertArrayHasKey('certname',    $cert);
-        $this->assertArrayHasKey('code',        $cert);
+        $this->assertArrayHasKey('id', $cert);
+        $this->assertArrayHasKey('userid', $cert);
+        $this->assertArrayHasKey('courseid', $cert);
+        $this->assertArrayHasKey('coursename', $cert);
+        $this->assertArrayHasKey('certname', $cert);
+        $this->assertArrayHasKey('code', $cert);
         $this->assertArrayHasKey('studentname', $cert);
-        $this->assertArrayHasKey('email',       $cert);
+        $this->assertArrayHasKey('email', $cert);
         $this->assertArrayHasKey('timecreated', $cert);
     }
 
-    // -------------------------------------------------------------------------
-    // Filters
-    // -------------------------------------------------------------------------
-
     /**
+     * Test filtering records by user ID.
+     *
      * @covers ::execute
      */
     public function test_filter_by_userid(): void {
@@ -195,6 +184,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test filtering records by exact email address.
+     *
      * @covers ::execute
      */
     public function test_filter_by_email_exact(): void {
@@ -202,7 +193,7 @@ class get_certificates_test extends advanced_testcase {
         $this->set_admin_user();
 
         $this->insert_snapshot(['email' => 'alice@example.com', 'code' => 'EML01', 'issueid' => 1]);
-        $this->insert_snapshot(['email' => 'bob@example.com',   'code' => 'EML02', 'issueid' => 2]);
+        $this->insert_snapshot(['email' => 'bob@example.com', 'code' => 'EML02', 'issueid' => 2]);
 
         $result = $this->call(['email' => 'alice@example.com']);
 
@@ -211,6 +202,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test filtering records by course ID.
+     *
      * @covers ::execute
      */
     public function test_filter_by_courseid(): void {
@@ -227,13 +220,15 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test filtering records by partial certificate name.
+     *
      * @covers ::execute
      */
     public function test_filter_by_certname_partial(): void {
         $this->resetAfterTest();
         $this->set_admin_user();
 
-        $this->insert_snapshot(['certname' => 'Python Basics',   'code' => 'CERT01', 'issueid' => 1]);
+        $this->insert_snapshot(['certname' => 'Python Basics', 'code' => 'CERT01', 'issueid' => 1]);
         $this->insert_snapshot(['certname' => 'Advanced Django', 'code' => 'CERT02', 'issueid' => 2]);
 
         $result = $this->call(['certname' => 'Python']);
@@ -243,6 +238,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test filtering records by partial student name.
+     *
      * @covers ::execute
      */
     public function test_filter_by_studentname_partial(): void {
@@ -250,7 +247,7 @@ class get_certificates_test extends advanced_testcase {
         $this->set_admin_user();
 
         $this->insert_snapshot(['studentname' => 'Alice Smith', 'code' => 'STU01', 'issueid' => 1]);
-        $this->insert_snapshot(['studentname' => 'Bob Jones',   'code' => 'STU02', 'issueid' => 2]);
+        $this->insert_snapshot(['studentname' => 'Bob Jones', 'code' => 'STU02', 'issueid' => 2]);
 
         $result = $this->call(['studentname' => 'Alice']);
 
@@ -259,6 +256,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test filtering records by exact certificate code.
+     *
      * @covers ::execute
      */
     public function test_filter_by_code_exact(): void {
@@ -275,6 +274,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that filtering returns an empty array when no records match.
+     *
      * @covers ::execute
      */
     public function test_filter_returns_empty_when_no_match(): void {
@@ -289,11 +290,9 @@ class get_certificates_test extends advanced_testcase {
         $this->assertEquals(0, $result['total']);
     }
 
-    // -------------------------------------------------------------------------
-    // Pagination
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the limit parameter restricts the number of returned results.
+     *
      * @covers ::execute
      */
     public function test_limit_restricts_number_of_results(): void {
@@ -311,6 +310,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that the offset parameter skips the specified number of records.
+     *
      * @covers ::execute
      */
     public function test_offset_skips_records(): void {
@@ -328,6 +329,8 @@ class get_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that the limit parameter is clamped to a maximum of 100.
+     *
      * @covers ::execute
      */
     public function test_limit_is_clamped_to_maximum_of_100(): void {
@@ -338,13 +341,14 @@ class get_certificates_test extends advanced_testcase {
             $this->insert_snapshot(['code' => "CLAMP0$i", 'issueid' => $i]);
         }
 
-        // Passing limit of 999 should not cause an error — it gets clamped to 100.
         $result = $this->call(['limit' => 999]);
 
         $this->assertCount(5, $result['certificates']);
     }
 
     /**
+     * Test that the total reflects the full count, not just the page size.
+     *
      * @covers ::execute
      */
     public function test_total_reflects_full_count_not_page_size(): void {

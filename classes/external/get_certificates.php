@@ -38,7 +38,6 @@ use core_external\external_value;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_certificates extends external_api {
-
     /**
      * Define input parameters.
      *
@@ -46,87 +45,86 @@ class get_certificates extends external_api {
      */
     public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'userid'      => new external_value(PARAM_INT,   'Filter by user ID',           VALUE_DEFAULT, 0),
-            'email'       => new external_value(PARAM_EMAIL, 'Filter by student email',      VALUE_DEFAULT, ''),
-            'courseid'    => new external_value(PARAM_INT,   'Filter by course ID',          VALUE_DEFAULT, 0),
-            'certname'    => new external_value(PARAM_TEXT,  'Partial search on cert name',  VALUE_DEFAULT, ''),
-            'studentname' => new external_value(PARAM_TEXT,  'Partial search on student name', VALUE_DEFAULT, ''),
-            'code'        => new external_value(PARAM_ALPHANUMEXT, 'Exact certificate code', VALUE_DEFAULT, ''),
-            'limit'       => new external_value(PARAM_INT,   'Number of records to return',  VALUE_DEFAULT, 20),
-            'offset'      => new external_value(PARAM_INT,   'Offset for pagination',        VALUE_DEFAULT, 0),
+            'userid' => new external_value(PARAM_INT, 'Filter by user ID', VALUE_DEFAULT, 0),
+            'email' => new external_value(PARAM_EMAIL, 'Filter by student email', VALUE_DEFAULT, ''),
+            'courseid' => new external_value(PARAM_INT, 'Filter by course ID', VALUE_DEFAULT, 0),
+            'certname' => new external_value(PARAM_TEXT, 'Partial search on cert name', VALUE_DEFAULT, ''),
+            'studentname' => new external_value(PARAM_TEXT, 'Partial search on student name', VALUE_DEFAULT, ''),
+            'code' => new external_value(PARAM_ALPHANUMEXT, 'Exact certificate code', VALUE_DEFAULT, ''),
+            'limit' => new external_value(PARAM_INT, 'Number of records to return', VALUE_DEFAULT, 20),
+            'offset' => new external_value(PARAM_INT, 'Offset for pagination', VALUE_DEFAULT, 0),
         ]);
     }
 
     /**
      * Execute the function.
      *
-     * @param int    $userid
-     * @param string $email
-     * @param int    $courseid
-     * @param string $certname
-     * @param string $studentname
-     * @param string $code
-     * @param int    $limit
-     * @param int    $offset
+     * @param int $userid Filter by user ID.
+     * @param string $email Filter by student email.
+     * @param int $courseid Filter by course ID.
+     * @param string $certname Partial search on cert name.
+     * @param string $studentname Partial search on student name.
+     * @param string $code Exact certificate code.
+     * @param int $limit Number of records to return.
+     * @param int $offset Offset for pagination.
      * @return array
      */
     public static function execute(
-        int    $userid      = 0,
-        string $email       = '',
-        int    $courseid    = 0,
-        string $certname    = '',
+        int $userid = 0,
+        string $email = '',
+        int $courseid = 0,
+        string $certname = '',
         string $studentname = '',
-        string $code        = '',
-        int    $limit       = 20,
-        int    $offset      = 0
+        string $code = '',
+        int $limit = 20,
+        int $offset = 0
     ): array {
         global $DB;
 
         $params = self::validate_parameters(self::execute_parameters(), [
-            'userid'      => $userid,
-            'email'       => $email,
-            'courseid'    => $courseid,
-            'certname'    => $certname,
+            'userid' => $userid,
+            'email' => $email,
+            'courseid' => $courseid,
+            'certname' => $certname,
             'studentname' => $studentname,
-            'code'        => $code,
-            'limit'       => $limit,
-            'offset'      => $offset,
+            'code' => $code,
+            'limit' => $limit,
+            'offset' => $offset,
         ]);
 
         $context = \context_system::instance();
         self::validate_context($context);
         require_capability('local/certhistory:viewall', $context);
 
-        // Clamp limit to prevent abuse.
-        $params['limit']  = max(1, min((int) $params['limit'], 100));
+        $params['limit'] = max(1, min((int) $params['limit'], 100));
         $params['offset'] = max(0, (int) $params['offset']);
 
         [$where, $sqlparams] = self::build_where($params);
 
         $fields = "id, userid, courseid, coursename, certname, code, studentname, email, timecreated";
-        $sql    = "SELECT $fields FROM {local_certhistory_certs} WHERE $where ORDER BY timecreated DESC";
+        $sql = "SELECT $fields FROM {local_certhistory_certs} WHERE $where ORDER BY timecreated DESC";
 
         $records = $DB->get_records_sql($sql, $sqlparams, $params['offset'], $params['limit']);
-        $total   = $DB->count_records_sql("SELECT COUNT(1) FROM {local_certhistory_certs} WHERE $where", $sqlparams);
+        $total = $DB->count_records_sql("SELECT COUNT(1) FROM {local_certhistory_certs} WHERE $where", $sqlparams);
 
         $certificates = [];
         foreach ($records as $record) {
             $certificates[] = [
-                'id'          => (int) $record->id,
-                'userid'      => (int) $record->userid,
-                'courseid'    => (int) $record->courseid,
-                'coursename'  => $record->coursename,
-                'certname'    => $record->certname,
-                'code'        => $record->code,
+                'id' => (int) $record->id,
+                'userid' => (int) $record->userid,
+                'courseid' => (int) $record->courseid,
+                'coursename' => $record->coursename,
+                'certname' => $record->certname,
+                'code' => $record->code,
                 'studentname' => $record->studentname,
-                'email'       => $record->email,
+                'email' => $record->email,
                 'timecreated' => (int) $record->timecreated,
             ];
         }
 
         return [
             'certificates' => $certificates,
-            'total'        => (int) $total,
+            'total' => (int) $total,
         ];
     }
 
@@ -139,15 +137,15 @@ class get_certificates extends external_api {
         return new external_single_structure([
             'certificates' => new external_multiple_structure(
                 new external_single_structure([
-                    'id'          => new external_value(PARAM_INT,   'Snapshot record ID'),
-                    'userid'      => new external_value(PARAM_INT,   'User ID'),
-                    'courseid'    => new external_value(PARAM_INT,   'Course ID'),
-                    'coursename'  => new external_value(PARAM_TEXT,  'Course name at time of issue'),
-                    'certname'    => new external_value(PARAM_TEXT,  'Certificate name at time of issue'),
-                    'code'        => new external_value(PARAM_ALPHANUMEXT, 'Verification code'),
-                    'studentname' => new external_value(PARAM_TEXT,  'Student full name at time of issue'),
-                    'email'       => new external_value(PARAM_EMAIL, 'Student email at time of issue'),
-                    'timecreated' => new external_value(PARAM_INT,   'Unix timestamp when certificate was issued'),
+                    'id' => new external_value(PARAM_INT, 'Snapshot record ID'),
+                    'userid' => new external_value(PARAM_INT, 'User ID'),
+                    'courseid' => new external_value(PARAM_INT, 'Course ID'),
+                    'coursename' => new external_value(PARAM_TEXT, 'Course name at time of issue'),
+                    'certname' => new external_value(PARAM_TEXT, 'Certificate name at time of issue'),
+                    'code' => new external_value(PARAM_ALPHANUMEXT, 'Verification code'),
+                    'studentname' => new external_value(PARAM_TEXT, 'Student full name at time of issue'),
+                    'email' => new external_value(PARAM_EMAIL, 'Student email at time of issue'),
+                    'timecreated' => new external_value(PARAM_INT, 'Unix timestamp when certificate was issued'),
                 ])
             ),
             'total' => new external_value(PARAM_INT, 'Total number of matching records'),
@@ -164,7 +162,7 @@ class get_certificates extends external_api {
         global $DB;
 
         $conditions = ['1=1'];
-        $sqlparams  = [];
+        $sqlparams = [];
 
         if (!empty($params['userid'])) {
             $conditions[] = 'userid = :userid';

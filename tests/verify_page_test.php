@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_certhistory\tests;
+namespace local_certhistory;
 
 use advanced_testcase;
 use local_certhistory\output\verify_page;
@@ -39,8 +39,7 @@ use local_certhistory\services\repository;
  * @group     local_certhistory
  * @coversDefaultClass \local_certhistory\output\verify_page
  */
-class verify_page_test extends advanced_testcase {
-
+final class verify_page_test extends advanced_testcase {
     /**
      * Build a minimal valid snapshot record and insert it.
      *
@@ -49,16 +48,16 @@ class verify_page_test extends advanced_testcase {
      */
     private function insert_snapshot(array $overrides = []): \stdClass {
         $record = (object) array_merge([
-            'userid'          => 1,
-            'issueid'         => 1,
-            'customcertid'    => 1,
-            'courseid'        => 1,
-            'coursename'      => 'Test Course',
-            'certname'        => 'Test Certificate',
-            'code'            => 'TEST01',
-            'studentname'     => 'Alice Smith',
-            'email'           => 'alice@example.com',
-            'timecreated'     => mktime(0, 0, 0, 1, 15, 2025),
+            'userid' => 1,
+            'issueid' => 1,
+            'customcertid' => 1,
+            'courseid' => 1,
+            'coursename' => 'Test Course',
+            'certname' => 'Test Certificate',
+            'code' => 'TEST01',
+            'studentname' => 'Alice Smith',
+            'email' => 'alice@example.com',
+            'timecreated' => mktime(0, 0, 0, 1, 15, 2025),
             'timesnapshotted' => time(),
         ], $overrides);
 
@@ -79,8 +78,8 @@ class verify_page_test extends advanced_testcase {
     /**
      * Find a detail entry value by its lang string key.
      *
-     * @param array  $details  The details array from export_for_template.
-     * @param string $langkey  The lang string key.
+     * @param array $details The details array from export_for_template.
+     * @param string $langkey The lang string key.
      * @return string|null
      */
     private function find_detail(array $details, string $langkey): ?string {
@@ -93,11 +92,9 @@ class verify_page_test extends advanced_testcase {
         return null;
     }
 
-    // -------------------------------------------------------------------------
-    // Empty code — no lookup should happen
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that an empty code returns no result keys.
+     *
      * @covers ::export_for_template
      */
     public function test_empty_code_returns_no_result_keys(): void {
@@ -108,6 +105,8 @@ class verify_page_test extends advanced_testcase {
     }
 
     /**
+     * Test that an empty code always includes the formaction key.
+     *
      * @covers ::export_for_template
      */
     public function test_empty_code_always_includes_formaction(): void {
@@ -117,11 +116,9 @@ class verify_page_test extends advanced_testcase {
         $this->assertNotEmpty($data['formaction']);
     }
 
-    // -------------------------------------------------------------------------
-    // Invalid code
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that an invalid code sets result_notfound.
+     *
      * @covers ::export_for_template
      */
     public function test_invalid_code_sets_result_notfound(): void {
@@ -131,11 +128,9 @@ class verify_page_test extends advanced_testcase {
         $this->assertArrayNotHasKey('result_valid', $data);
     }
 
-    // -------------------------------------------------------------------------
-    // Valid code — detail fields
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that a valid code sets result_valid.
+     *
      * @covers ::export_for_template
      */
     public function test_valid_code_sets_result_valid(): void {
@@ -150,6 +145,8 @@ class verify_page_test extends advanced_testcase {
     }
 
     /**
+     * Test that a valid code shows the student name as certificate holder.
+     *
      * @covers ::export_for_template
      */
     public function test_valid_code_shows_studentname_as_certificate_holder(): void {
@@ -157,13 +154,15 @@ class verify_page_test extends advanced_testcase {
 
         $this->insert_snapshot(['code' => 'VALID02', 'studentname' => 'Alice Smith']);
 
-        $data   = (new verify_page('VALID02'))->export_for_template($this->get_renderer());
+        $data = (new verify_page('VALID02'))->export_for_template($this->get_renderer());
         $holder = $this->find_detail($data['details'], 'certificateholder');
 
         $this->assertEquals('Alice Smith', $holder);
     }
 
     /**
+     * Test that a valid code shows the certificate name in the details.
+     *
      * @covers ::export_for_template
      */
     public function test_valid_code_shows_certname(): void {
@@ -171,13 +170,15 @@ class verify_page_test extends advanced_testcase {
 
         $this->insert_snapshot(['code' => 'VALID03', 'certname' => 'My Certificate']);
 
-        $data     = (new verify_page('VALID03'))->export_for_template($this->get_renderer());
+        $data = (new verify_page('VALID03'))->export_for_template($this->get_renderer());
         $certname = $this->find_detail($data['details'], 'certificatename');
 
         $this->assertEquals('My Certificate', $certname);
     }
 
     /**
+     * Test that a valid code shows the course name in the details.
+     *
      * @covers ::export_for_template
      */
     public function test_valid_code_shows_coursename(): void {
@@ -185,13 +186,15 @@ class verify_page_test extends advanced_testcase {
 
         $this->insert_snapshot(['code' => 'VALID04', 'coursename' => 'My Course']);
 
-        $data       = (new verify_page('VALID04'))->export_for_template($this->get_renderer());
+        $data = (new verify_page('VALID04'))->export_for_template($this->get_renderer());
         $coursename = $this->find_detail($data['details'], 'coursename');
 
         $this->assertEquals('My Course', $coursename);
     }
 
     /**
+     * Test that a valid code shows the code value in the details.
+     *
      * @covers ::export_for_template
      */
     public function test_valid_code_shows_code_in_details(): void {
@@ -205,11 +208,9 @@ class verify_page_test extends advanced_testcase {
         $this->assertEquals('VALID05', $code);
     }
 
-    // -------------------------------------------------------------------------
-    // Deleted user — empty studentname must not crash
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that an empty studentname renders without error.
+     *
      * @covers ::export_for_template
      */
     public function test_empty_studentname_renders_without_error(): void {
@@ -217,7 +218,7 @@ class verify_page_test extends advanced_testcase {
 
         $this->insert_snapshot(['code' => 'DELUSER01', 'studentname' => '', 'email' => '']);
 
-        $data   = (new verify_page('DELUSER01'))->export_for_template($this->get_renderer());
+        $data = (new verify_page('DELUSER01'))->export_for_template($this->get_renderer());
         $holder = $this->find_detail($data['details'], 'certificateholder');
 
         $this->assertTrue($data['result_valid']);

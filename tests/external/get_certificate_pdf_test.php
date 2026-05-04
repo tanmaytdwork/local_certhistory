@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_certhistory\tests\external;
+namespace local_certhistory\external;
 
 use advanced_testcase;
 use local_certhistory\external\get_certificate_pdf;
@@ -39,30 +39,25 @@ use local_certhistory\services\repository;
  * @group     local_certhistory
  * @coversDefaultClass \local_certhistory\external\get_certificate_pdf
  */
-class get_certificate_pdf_test extends advanced_testcase {
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
+final class get_certificate_pdf_test extends advanced_testcase {
     /**
      * Insert a snapshot and return the record with its DB id.
      *
-     * @param array $overrides
+     * @param array $overrides Field overrides.
      * @return \stdClass
      */
     private function insert_snapshot(array $overrides = []): \stdClass {
         $record = (object) array_merge([
-            'userid'          => 1,
-            'issueid'         => 1,
-            'customcertid'    => 1,
-            'courseid'        => 1,
-            'coursename'      => 'Test Course',
-            'certname'        => 'Test Certificate',
-            'code'            => 'PDF001',
-            'studentname'     => 'John Doe',
-            'email'           => 'john@example.com',
-            'timecreated'     => time(),
+            'userid' => 1,
+            'issueid' => 1,
+            'customcertid' => 1,
+            'courseid' => 1,
+            'coursename' => 'Test Course',
+            'certname' => 'Test Certificate',
+            'code' => 'PDF001',
+            'studentname' => 'John Doe',
+            'email' => 'john@example.com',
+            'timecreated' => time(),
             'timesnapshotted' => time(),
         ], $overrides);
 
@@ -73,28 +68,26 @@ class get_certificate_pdf_test extends advanced_testcase {
     /**
      * Store a fake PDF file in Moodle's file storage for the given snapshot ID.
      *
-     * @param int    $snapshotid The snapshot record ID (itemid).
-     * @param string $content    Raw file content.
+     * @param int $snapshotid The snapshot record ID (itemid).
+     * @param string $content Raw file content.
      */
     private function store_fake_pdf(int $snapshotid, string $content = 'fake-pdf-content'): void {
-        $fs      = get_file_storage();
+        $fs = get_file_storage();
         $context = \context_system::instance();
 
         $fs->create_file_from_string([
             'contextid' => $context->id,
             'component' => 'local_certhistory',
-            'filearea'  => 'certificates',
-            'itemid'    => $snapshotid,
-            'filepath'  => '/',
-            'filename'  => 'certificate.pdf',
+            'filearea' => 'certificates',
+            'itemid' => $snapshotid,
+            'filepath' => '/',
+            'filename' => 'certificate.pdf',
         ], $content);
     }
 
-    // -------------------------------------------------------------------------
-    // Capability check
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the viewall capability is required.
+     *
      * @covers ::execute
      */
     public function test_requires_viewall_capability(): void {
@@ -107,11 +100,9 @@ class get_certificate_pdf_test extends advanced_testcase {
         get_certificate_pdf::execute(1);
     }
 
-    // -------------------------------------------------------------------------
-    // Snapshot not found
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that not-found is returned for a missing snapshot.
+     *
      * @covers ::execute
      */
     public function test_returns_not_found_for_missing_snapshot(): void {
@@ -124,11 +115,9 @@ class get_certificate_pdf_test extends advanced_testcase {
         $this->assertEquals('', $result['pdf']);
     }
 
-    // -------------------------------------------------------------------------
-    // Snapshot exists but no PDF stored
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that found is true with an empty PDF when no file is stored.
+     *
      * @covers ::execute
      */
     public function test_returns_found_true_with_empty_pdf_when_no_file_stored(): void {
@@ -143,11 +132,9 @@ class get_certificate_pdf_test extends advanced_testcase {
         $this->assertEquals('', $result['pdf']);
     }
 
-    // -------------------------------------------------------------------------
-    // Snapshot exists with PDF
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that found is true with a non-empty base64 PDF when a file is stored.
+     *
      * @covers ::execute
      */
     public function test_returns_found_true_with_base64_pdf(): void {
@@ -164,6 +151,8 @@ class get_certificate_pdf_test extends advanced_testcase {
     }
 
     /**
+     * Test that the PDF field contains valid base64-encoded data.
+     *
      * @covers ::execute
      */
     public function test_pdf_is_valid_base64(): void {
@@ -173,13 +162,15 @@ class get_certificate_pdf_test extends advanced_testcase {
         $snapshot = $this->insert_snapshot(['code' => 'HASPDF02', 'issueid' => 1]);
         $this->store_fake_pdf($snapshot->id, 'fake-pdf-content');
 
-        $result  = get_certificate_pdf::execute($snapshot->id);
+        $result = get_certificate_pdf::execute($snapshot->id);
         $decoded = base64_decode($result['pdf'], true);
 
         $this->assertNotFalse($decoded, 'PDF field should be valid base64');
     }
 
     /**
+     * Test that the decoded PDF matches the original stored content.
+     *
      * @covers ::execute
      */
     public function test_decoded_pdf_matches_original_content(): void {
@@ -187,20 +178,18 @@ class get_certificate_pdf_test extends advanced_testcase {
         $this->setAdminUser();
 
         $originalcontent = '%PDF-1.4 fake content for testing';
-        $snapshot        = $this->insert_snapshot(['code' => 'HASPDF03', 'issueid' => 1]);
+        $snapshot = $this->insert_snapshot(['code' => 'HASPDF03', 'issueid' => 1]);
         $this->store_fake_pdf($snapshot->id, $originalcontent);
 
-        $result  = get_certificate_pdf::execute($snapshot->id);
+        $result = get_certificate_pdf::execute($snapshot->id);
         $decoded = base64_decode($result['pdf']);
 
         $this->assertEquals($originalcontent, $decoded);
     }
 
-    // -------------------------------------------------------------------------
-    // Response shape
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the response always contains the found and pdf keys.
+     *
      * @covers ::execute
      */
     public function test_response_always_has_found_and_pdf_keys(): void {
@@ -210,6 +199,6 @@ class get_certificate_pdf_test extends advanced_testcase {
         $result = get_certificate_pdf::execute(99999);
 
         $this->assertArrayHasKey('found', $result);
-        $this->assertArrayHasKey('pdf',   $result);
+        $this->assertArrayHasKey('pdf', $result);
     }
 }

@@ -38,7 +38,6 @@ use local_certhistory\services\repository;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_certificate_pdf extends external_api {
-
     /**
      * Define input parameters.
      *
@@ -68,11 +67,11 @@ class get_certificate_pdf extends external_api {
         if (!$record) {
             return [
                 'found' => false,
-                'pdf'   => '',
+                'pdf' => '',
             ];
         }
 
-        $fs   = get_file_storage();
+        $fs = get_file_storage();
         $file = $fs->get_file(
             $context->id,
             'local_certhistory',
@@ -85,13 +84,13 @@ class get_certificate_pdf extends external_api {
         if (!$file) {
             return [
                 'found' => true,
-                'pdf'   => '',
+                'pdf' => '',
             ];
         }
 
         return [
             'found' => true,
-            'pdf'   => base64_encode($file->get_content()),
+            'pdf' => base64_encode($file->get_content()),
         ];
     }
 
@@ -103,7 +102,7 @@ class get_certificate_pdf extends external_api {
     public static function execute_returns(): external_single_structure {
         return new external_single_structure([
             'found' => new external_value(PARAM_BOOL, 'Whether a snapshot with this ID exists'),
-            'pdf'   => new external_value(PARAM_RAW,  'Base64-encoded PDF content, empty string if unavailable'),
+            'pdf' => new external_value(PARAM_RAW, 'Base64-encoded PDF content, empty string if unavailable'),
         ]);
     }
 }

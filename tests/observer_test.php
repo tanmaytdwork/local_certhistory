@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_certhistory\tests;
+namespace local_certhistory;
 
 use advanced_testcase;
 use local_certhistory\services\repository;
@@ -38,8 +38,7 @@ use local_certhistory\services\repository;
  * @group     local_certhistory
  * @coversDefaultClass \local_certhistory\observer
  */
-class observer_test extends advanced_testcase {
-
+final class observer_test extends advanced_testcase {
     /**
      * Seed a course, customcert record, and user in the DB.
      *
@@ -54,13 +53,13 @@ class observer_test extends advanced_testcase {
 
         $user = $generator->create_user([
             'firstname' => 'Bob',
-            'lastname'  => 'Builder',
-            'email'     => 'bob@example.com',
+            'lastname' => 'Builder',
+            'email' => 'bob@example.com',
         ]);
 
         $customcertid = $DB->insert_record('customcert', (object)[
-            'course'     => $course->id,
-            'name'       => 'Observer Test Cert',
+            'course' => $course->id,
+            'name' => 'Observer Test Cert',
             'templateid' => 0,
         ]);
 
@@ -72,42 +71,40 @@ class observer_test extends advanced_testcase {
     /**
      * Insert a customcert_issues row and return the issue id.
      *
-     * @param int    $userid       User ID.
-     * @param int    $customcertid Customcert ID.
-     * @param string $code         Certificate code.
+     * @param int $userid User ID.
+     * @param int $customcertid Customcert ID.
+     * @param string $code Certificate code.
      * @return int
      */
     private function insert_issue(int $userid, int $customcertid, string $code): int {
         global $DB;
         return $DB->insert_record('customcert_issues', (object)[
-            'userid'       => $userid,
+            'userid' => $userid,
             'customcertid' => $customcertid,
-            'code'         => $code,
-            'timecreated'  => time(),
+            'code' => $code,
+            'timecreated' => time(),
         ]);
     }
 
     /**
      * Directly call the observer with a given issue id.
      *
-     * @param int $issueid     Issue id to pass as objectid.
+     * @param int $issueid Issue id to pass as objectid.
      * @param int $relateduserid User id for the event.
      */
     private function call_observer(int $issueid, int $relateduserid = 0): void {
         \local_certhistory\observer::certificate_issued(
             \mod_customcert\event\issue_created::create([
-                'objectid'      => $issueid,
-                'context'       => \context_system::instance(),
+                'objectid' => $issueid,
+                'context' => \context_system::instance(),
                 'relateduserid' => $relateduserid,
             ])
         );
     }
 
-    // -------------------------------------------------------------------------
-    // Snapshot creation — field correctness
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that a snapshot is created for a valid issue.
+     *
      * @covers ::certificate_issued
      */
     public function test_snapshot_is_created_for_valid_issue(): void {
@@ -122,6 +119,8 @@ class observer_test extends advanced_testcase {
     }
 
     /**
+     * Test that studentname is stored as firstname space lastname.
+     *
      * @covers ::certificate_issued
      */
     public function test_snapshot_stores_studentname_as_firstname_space_lastname(): void {
@@ -138,6 +137,8 @@ class observer_test extends advanced_testcase {
     }
 
     /**
+     * Test that the user email is stored in the snapshot.
+     *
      * @covers ::certificate_issued
      */
     public function test_snapshot_stores_user_email(): void {
@@ -154,6 +155,8 @@ class observer_test extends advanced_testcase {
     }
 
     /**
+     * Test that the course name at time of issue is stored in the snapshot.
+     *
      * @covers ::certificate_issued
      */
     public function test_snapshot_stores_coursename_at_issue_time(): void {
@@ -170,6 +173,8 @@ class observer_test extends advanced_testcase {
     }
 
     /**
+     * Test that the certificate name at time of issue is stored in the snapshot.
+     *
      * @covers ::certificate_issued
      */
     public function test_snapshot_stores_certname_at_issue_time(): void {
@@ -185,11 +190,9 @@ class observer_test extends advanced_testcase {
         $this->assertEquals('Observer Test Cert', $snapshot->certname);
     }
 
-    // -------------------------------------------------------------------------
-    // Duplicate prevention
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that a second event for the same issue does not create a duplicate snapshot.
+     *
      * @covers ::certificate_issued
      */
     public function test_second_event_for_same_issue_does_not_create_duplicate(): void {
@@ -206,11 +209,9 @@ class observer_test extends advanced_testcase {
         $this->assertEquals(1, $count);
     }
 
-    // -------------------------------------------------------------------------
-    // Missing related records — early-return guards
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that no snapshot is created when the issue record is not found.
+     *
      * @covers ::certificate_issued
      */
     public function test_no_snapshot_when_issue_record_not_found(): void {
@@ -219,12 +220,14 @@ class observer_test extends advanced_testcase {
     }
 
     /**
+     * Test that no snapshot is created when the customcert record is not found.
+     *
      * @covers ::certificate_issued
      */
     public function test_no_snapshot_when_customcert_not_found(): void {
         $this->resetAfterTest();
 
-        $user    = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $issueid = $this->insert_issue($user->id, 99999, 'NOCERT');
 
         $this->call_observer($issueid, $user->id);
@@ -232,11 +235,9 @@ class observer_test extends advanced_testcase {
         $this->assertFalse(repository::snapshot_exists($issueid));
     }
 
-    // -------------------------------------------------------------------------
-    // Deleted user
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that a snapshot is created with empty fields when the user is deleted.
+     *
      * @covers ::certificate_issued
      */
     public function test_snapshot_created_with_empty_fields_when_user_is_deleted(): void {

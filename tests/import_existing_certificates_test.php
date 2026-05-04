@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_certhistory\tests;
+namespace local_certhistory;
 
 use advanced_testcase;
 use local_certhistory\services\repository;
@@ -39,17 +39,12 @@ use local_certhistory\task\import_existing_certificates;
  * @group     local_certhistory
  * @coversDefaultClass \local_certhistory\task\import_existing_certificates
  */
-class import_existing_certificates_test extends advanced_testcase {
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
+final class import_existing_certificates_test extends advanced_testcase {
     /**
      * Seed a course and customcert in the DB, returning both records.
      *
-     * @param string $coursename
-     * @param string $certname
+     * @param string $coursename Course full name.
+     * @param string $certname Certificate name.
      * @return array [$course, $customcert]
      */
     private function seed_course_and_cert(string $coursename = 'Test Course', string $certname = 'Test Cert'): array {
@@ -58,8 +53,8 @@ class import_existing_certificates_test extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course(['fullname' => $coursename]);
 
         $customcertid = $DB->insert_record('customcert', (object)[
-            'course'     => $course->id,
-            'name'       => $certname,
+            'course' => $course->id,
+            'name' => $certname,
             'templateid' => 0,
         ]);
         $customcert = $DB->get_record('customcert', ['id' => $customcertid], '*', MUST_EXIST);
@@ -70,18 +65,18 @@ class import_existing_certificates_test extends advanced_testcase {
     /**
      * Insert a customcert_issues row and return the issue id.
      *
-     * @param int    $userid
-     * @param int    $customcertid
-     * @param string $code
+     * @param int $userid User ID.
+     * @param int $customcertid Customcert ID.
+     * @param string $code Certificate code.
      * @return int
      */
     private function insert_issue(int $userid, int $customcertid, string $code): int {
         global $DB;
         return $DB->insert_record('customcert_issues', (object)[
-            'userid'       => $userid,
+            'userid' => $userid,
             'customcertid' => $customcertid,
-            'code'         => $code,
-            'timecreated'  => time(),
+            'code' => $code,
+            'timecreated' => time(),
         ]);
     }
 
@@ -92,11 +87,9 @@ class import_existing_certificates_test extends advanced_testcase {
         (new import_existing_certificates())->execute();
     }
 
-    // -------------------------------------------------------------------------
-    // Basic import
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the task creates a snapshot for an unsnapshotted issue.
+     *
      * @covers ::execute
      */
     public function test_task_creates_snapshot_for_unsnapshotted_issue(): void {
@@ -112,6 +105,8 @@ class import_existing_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that the task stores the correct student name.
+     *
      * @covers ::execute
      */
     public function test_task_stores_correct_studentname(): void {
@@ -120,7 +115,7 @@ class import_existing_certificates_test extends advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user([
             'firstname' => 'Jane',
-            'lastname'  => 'Doe',
+            'lastname' => 'Doe',
         ]);
         [$course, $customcert] = $this->seed_course_and_cert();
         $issueid = $this->insert_issue($user->id, $customcert->id, 'IMPORT02');
@@ -132,6 +127,8 @@ class import_existing_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that the task stores the correct email.
+     *
      * @covers ::execute
      */
     public function test_task_stores_correct_email(): void {
@@ -149,6 +146,8 @@ class import_existing_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that the task stores the correct course name.
+     *
      * @covers ::execute
      */
     public function test_task_stores_correct_coursename(): void {
@@ -166,6 +165,8 @@ class import_existing_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that the task stores the correct certificate name.
+     *
      * @covers ::execute
      */
     public function test_task_stores_correct_certname(): void {
@@ -183,6 +184,8 @@ class import_existing_certificates_test extends advanced_testcase {
     }
 
     /**
+     * Test that the task stores the correct certificate code.
+     *
      * @covers ::execute
      */
     public function test_task_stores_correct_code(): void {
@@ -199,11 +202,9 @@ class import_existing_certificates_test extends advanced_testcase {
         $this->assertEquals('MYCODE99', $snapshot->code);
     }
 
-    // -------------------------------------------------------------------------
-    // Multiple issues
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the task imports multiple issues in one run.
+     *
      * @covers ::execute
      */
     public function test_task_imports_multiple_issues_in_one_run(): void {
@@ -224,11 +225,9 @@ class import_existing_certificates_test extends advanced_testcase {
         $this->assertTrue(repository::snapshot_exists($issueid3));
     }
 
-    // -------------------------------------------------------------------------
-    // Already snapshotted — must be skipped
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the task skips an already-snapshotted issue.
+     *
      * @covers ::execute
      */
     public function test_task_skips_already_snapshotted_issue(): void {
@@ -239,29 +238,29 @@ class import_existing_certificates_test extends advanced_testcase {
         [$course, $customcert] = $this->seed_course_and_cert();
         $issueid = $this->insert_issue($user->id, $customcert->id, 'ALREADY1');
 
-        // Pre-insert a snapshot for this issue.
         repository::insert_snapshot((object)[
-            'userid'          => $user->id,
-            'issueid'         => $issueid,
-            'customcertid'    => $customcert->id,
-            'courseid'        => $course->id,
-            'coursename'      => 'Pre-existing',
-            'certname'        => 'Pre-existing',
-            'code'            => 'ALREADY1',
-            'studentname'     => 'Pre Existing',
-            'email'           => 'pre@example.com',
-            'timecreated'     => time(),
+            'userid' => $user->id,
+            'issueid' => $issueid,
+            'customcertid' => $customcert->id,
+            'courseid' => $course->id,
+            'coursename' => 'Pre-existing',
+            'certname' => 'Pre-existing',
+            'code' => 'ALREADY1',
+            'studentname' => 'Pre Existing',
+            'email' => 'pre@example.com',
+            'timecreated' => time(),
             'timesnapshotted' => time(),
         ]);
 
         $this->run_task();
 
-        // Should still be exactly one snapshot, not two.
         $count = $DB->count_records('local_certhistory_certs', ['issueid' => $issueid]);
         $this->assertEquals(1, $count);
     }
 
     /**
+     * Test that the task does not overwrite existing snapshot data.
+     *
      * @covers ::execute
      */
     public function test_task_does_not_overwrite_existing_snapshot_data(): void {
@@ -273,16 +272,16 @@ class import_existing_certificates_test extends advanced_testcase {
         $issueid = $this->insert_issue($user->id, $customcert->id, 'ALREADY2');
 
         repository::insert_snapshot((object)[
-            'userid'          => $user->id,
-            'issueid'         => $issueid,
-            'customcertid'    => $customcert->id,
-            'courseid'        => $course->id,
-            'coursename'      => 'Original Course Name',
-            'certname'        => 'Original Cert Name',
-            'code'            => 'ALREADY2',
-            'studentname'     => 'Original Name',
-            'email'           => 'original@example.com',
-            'timecreated'     => time(),
+            'userid' => $user->id,
+            'issueid' => $issueid,
+            'customcertid' => $customcert->id,
+            'courseid' => $course->id,
+            'coursename' => 'Original Course Name',
+            'certname' => 'Original Cert Name',
+            'code' => 'ALREADY2',
+            'studentname' => 'Original Name',
+            'email' => 'original@example.com',
+            'timecreated' => time(),
             'timesnapshotted' => time(),
         ]);
 
@@ -293,11 +292,9 @@ class import_existing_certificates_test extends advanced_testcase {
         $this->assertEquals('Original Course Name', $snapshot->coursename);
     }
 
-    // -------------------------------------------------------------------------
-    // Deleted user
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the task imports an issue with empty fields when the user is deleted.
+     *
      * @covers ::execute
      */
     public function test_task_imports_issue_with_empty_fields_when_user_deleted(): void {
@@ -318,17 +315,14 @@ class import_existing_certificates_test extends advanced_testcase {
         $this->assertEquals('', $snapshot->email);
     }
 
-    // -------------------------------------------------------------------------
-    // Empty table — task must not crash
-    // -------------------------------------------------------------------------
-
     /**
+     * Test that the task runs cleanly when there are no issues.
+     *
      * @covers ::execute
      */
     public function test_task_runs_cleanly_with_no_issues(): void {
         $this->resetAfterTest();
 
-        // Should complete without exception.
         $this->run_task();
 
         $this->assertTrue(true);
