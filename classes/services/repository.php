@@ -134,7 +134,7 @@ class repository {
                   FROM {customcert_issues} ci
                   JOIN {customcert} cc ON cc.id = ci.customcertid
                   JOIN {course} c ON c.id = cc.course
-             LEFT JOIN {user} u ON u.id = ci.userid
+             LEFT JOIN {user} u ON u.id = ci.userid AND u.deleted = 0
              LEFT JOIN {local_certhistory_certs} lch ON lch.issueid = ci.id
                  WHERE lch.id IS NULL";
         return $DB->get_recordset_sql($sql);
@@ -161,7 +161,7 @@ class repository {
         global $DB;
         return $DB->get_record(
             'user',
-            ['id' => $userid],
+            ['id' => $userid, 'deleted' => 0],
             'id, firstname, lastname, email'
         ) ?: null;
     }
