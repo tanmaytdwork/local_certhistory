@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 320">
+
+  <!-- Blue background circle -->
+  <circle cx="150" cy="152" r="130" fill="#C8E6F5"/>
+
+  <!-- Ground shadow -->
+  <ellipse cx="150" cy="282" rx="56" ry="10" fill="rgba(0,0,0,0.10)"/>
+
+  <!-- Left arm + thumbs up (behind certificate) -->
+  <path d="M63,148 Q40,138 30,118" fill="none" stroke="#2B1A0D" stroke-width="10" stroke-linecap="round"/>
+  <!-- Fist -->
+  <rect x="14" y="104" width="26" height="20" rx="8" fill="#2B1A0D"/>
+  <!-- Thumb -->
+  <rect x="23" y="87"  width="12" height="20" rx="6" fill="#2B1A0D"/>
+  <!-- Sparkle lines -->
+  <line x1="11" y1="98"  x2="3"  y2="91"  stroke="#2B1A0D" stroke-width="4" stroke-linecap="round"/>
+  <line x1="9"  y1="113" x2="1"  y2="113" stroke="#2B1A0D" stroke-width="4" stroke-linecap="round"/>
+  <line x1="14" y1="127" x2="6"  y2="134" stroke="#2B1A0D" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Right arm (behind certificate) -->
+  <path d="M237,158 Q258,150 262,166" fill="none" stroke="#2B1A0D" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="264" cy="170" r="9" fill="#2B1A0D"/>
+
+  <!-- Legs -->
+  <line x1="115" y1="236" x2="107" y2="264" stroke="#2B1A0D" stroke-width="9" stroke-linecap="round"/>
+  <line x1="185" y1="236" x2="193" y2="264" stroke="#2B1A0D" stroke-width="9" stroke-linecap="round"/>
+  <!-- Feet -->
+  <ellipse cx="103" cy="268" rx="19" ry="9"  fill="#2B1A0D"/>
+  <ellipse cx="197" cy="268" rx="19" ry="9"  fill="#2B1A0D"/>
+
+  <!-- Certificate body -->
+  <rect x="58" y="24" width="184" height="216" rx="18" fill="#FFF9EE" stroke="#2B1A0D" stroke-width="7"/>
+
+  <!-- Inner golden decorative border -->
+  <rect x="72" y="38" width="156" height="188" rx="11" fill="none" stroke="#F2B700" stroke-width="5"/>
+
+  <!-- Eyes -->
+  <circle cx="120" cy="100" r="14" fill="#2B1A0D"/>
+  <circle cx="180" cy="100" r="14" fill="#2B1A0D"/>
+  <circle cx="126" cy="94"  r="5"  fill="white"/>
+  <circle cx="186" cy="94"  r="5"  fill="white"/>
+
+  <!-- Rosy cheeks -->
+  <ellipse cx="102" cy="126" rx="16" ry="10" fill="#F2A0A8" opacity="0.7"/>
+  <ellipse cx="198" cy="126" rx="16" ry="10" fill="#F2A0A8" opacity="0.7"/>
+
+  <!-- Open happy mouth -->
+  <!-- Dark outer smile shape -->
+  <path d="M116,122 Q150,162 184,122 Q184,155 150,160 Q116,155 116,122Z" fill="#2B1A0D"/>
+  <!-- Pink inside -->
+  <path d="M119,126 Q150,158 181,126 Q181,152 150,156 Q119,152 119,126Z" fill="#E8606A"/>
+  <!-- White teeth -->
+  <path d="M119,126 Q150,138 181,126 Q150,134 119,126Z" fill="white"/>
+
+  <!-- Certificate text lines -->
+  <line x1="86" y1="182" x2="200" y2="182" stroke="#CCCAB8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="86" y1="198" x2="196" y2="198" stroke="#CCCAB8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="86" y1="214" x2="168" y2="214" stroke="#CCCAB8" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Badge ribbon tails -->
+  <path d="M188,232 L179,260 L188,253 L192,264 L197,236" fill="#C8601A" stroke="#2B1A0D" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Badge outer circle (golden) -->
+  <circle cx="193" cy="220" r="28" fill="#F2B700" stroke="#2B1A0D" stroke-width="4"/>
+  <!-- Badge inner circle (darker gold) -->
+  <circle cx="193" cy="220" r="20" fill="#D4980A"/>
+  <!-- 5-point star -->
+  <polygon points="193,206 196.5,216 207,216 199,222 202,232 193,226 184,232 187,222 179,216 189.5,216"
+           fill="#F2B700"/>
+
+</svg>
